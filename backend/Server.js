@@ -1,72 +1,60 @@
 const express = require('express');
-const mysql = require('mysql');
+const mysql = require('mysql2'); // Use mysql2 instead of mysql
 const cors = require('cors');
+const bodyParser = require('body-parser');
 
 const app = express();
-app.use(express.json());
+const port = 5002;
+
+// Middleware
 app.use(cors());
+app.use(bodyParser.json());
 
-// Database connection
+// MySQL connection
 const db = mysql.createConnection({
-  host: 'localhost', // Update with your MySQL host
-  user: 'root',      // Update with your MySQL user
-  password: '',      // Update with your MySQL password
-  database: 'wings_cafe_inventory' // Database name
+    host: 'localhost',
+    user: 'root', // replace with your MySQL username
+    password: '123456', // replace with your MySQL password
+    database: 'wings_cafe_inventory' // replace with your database name
 });
 
+// Connect to MySQL
 db.connect((err) => {
-  if (err) {
-    console.error('Database connection failed:', err.stack);
-    return;
-  }
-  console.log('Connected to MySQL database');
+    if (err) throw err;
+    console.log('MySQL connected...');
 });
 
-app.listen(5000, () => {
-  console.log('Server is running on port 5000');
-});
-
-// Route to get all products
+// API routes
 app.get('/api/products', (req, res) => {
     db.query('SELECT * FROM products', (err, results) => {
-      if (err) return res.status(500).send(err);
-      res.json(results);
+        if (err) throw err;
+        res.json(results);
     });
-  });
-  
-  // Route to add a new product
-  app.post('/api/products', (req, res) => {
-    const { name, description, category, price, quantity } = req.body;
-    db.query(
-      'INSERT INTO products (name, description, category, price, quantity) VALUES (?, ?, ?, ?, ?)',
-      [name, description, category, price, quantity],
-      (err, results) => {
-        if (err) return res.status(500).send(err);
-        res.json({ message: 'Product added successfully', id: results.insertId });
-      }
-    );
-  });
-  
-  // Route to update a product
-  app.put('/api/products/:id', (req, res) => {
-    const { id } = req.params;
-    const { name, description, category, price, quantity } = req.body;
-    db.query(
-      'UPDATE products SET name = ?, description = ?, category = ?, price = ?, quantity = ? WHERE id = ?',
-      [name, description, category, price, quantity, id],
-      (err, results) => {
-        if (err) return res.status(500).send(err);
-        res.json({ message: 'Product updated successfully' });
-      }
-    );
-  });
-  
-  // Route to delete a product
-  app.delete('/api/products/:id', (req, res) => {
-    const { id } = req.params;
-    db.query('DELETE FROM products WHERE id = ?', [id], (err, results) => {
-      if (err) return res.status(500).send(err);
-      res.json({ message: 'Product deleted successfully' });
+});
+
+app.post('/api/products', (req, res) => {
+    const newProduct = req.body;
+    db.query('INSERT INTO products SET ?', newProduct, (err, result) => {
+        if (err) throw err;
+        res.status(201).json({ id: result.insertId, ...newProduct });
     });
+});
+
+
+const PORT = 5002; // Define PORT
+app.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
+});
+
+app.post('/api/products', (req, res) => {
+  const { name, description, category, price, quantity } = req.body;
+  const query = 'INSERT INTO products (name, description, category, price, quantity) VALUES (?, ?, ?, ?, ?)';
+
+  db.query(query, [name, description, category, price, quantity], (err, results) => {
+    if (err) {
+      console.error('Database insertion error:', err);
+      return res.status(500).json({ error: 'Database insertion failed' });
+    }
+    res.json({ id: results.insertId, message: 'Product added successfully' });
   });
-  
+});
