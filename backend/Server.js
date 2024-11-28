@@ -4,7 +4,7 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 
 const app = express();
-const port = 5002;
+const port = 5000;
 
 // Middleware
 app.use(cors());
@@ -14,8 +14,8 @@ app.use(bodyParser.json());
 const db = mysql.createConnection({
     host: 'localhost',
     user: 'root', // replace with your MySQL username
-    password: '123456', // replace with your MySQL password
-    database: 'wings_cafe_inventory' // replace with your database name
+    password: 'Rapelang03&&', // replace with your MySQL password
+    database: 'wings_cafe' // replace with your database name
 });
 
 // Connect to MySQL
